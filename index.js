@@ -35,6 +35,7 @@ function COnectionTochanel(type, channelId, guildId, Voice) {
         selfMute: false,
     })
     console.log("sucesso")
+    console.log("sucesso")
 
     if (type === "delete") {
         connection.disconnect()
