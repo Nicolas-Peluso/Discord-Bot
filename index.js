@@ -1,5 +1,6 @@
 const { token } = require('./config.json')
 const { Client, Intents } = require("discord.js")
+const { joinVoiceChannel, getVoiceConnection } = require("@discordjs/voice")
 
 const app = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES] })
 
@@ -24,6 +25,36 @@ app.on("interactionCreate", async interaction => {
             await interaction.reply("vou toca uma musica")
             break;
     }
+})
+
+function COnectionTochanel(type, channelId, guildId, Voice) {
+    const connection = joinVoiceChannel({
+        channelId: channelId,
+        guildId: guildId,
+        adapterCreator: Voice,
+        selfMute: false,
+    })
+    console.log("sucesso")
+
+    if (type === "delete") {
+        connection.disconnect()
+        connection.destroy()
+    }
+}
+
+function handlePlay(e) {
+    getVoiceConnection(e)
+}
+
+app.on("messageCreate", msg => {
+    if (msg.content === "!join") {
+        COnectionTochanel(null, msg.member.voice.channel.id, msg.guild.id, msg.guild.voiceAdapterCreator)
+    }
+    else if (msg.content === "!dis") {
+        COnectionTochanel("delete", msg.member.voice.channel.id, msg.guild.id, msg.guild.voiceAdapterCreator)
+    }
+    else if (msg.content === '!play')
+        handlePlay(msg.member.voice.guild.id)
 })
 
 app.login(token)
