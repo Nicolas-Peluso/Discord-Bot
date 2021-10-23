@@ -1,61 +1,34 @@
-const { token } = require('./config.json')
+const { token } = require("./config.json")
 const { Client, Intents } = require("discord.js")
-const { joinVoiceChannel, getVoiceConnection } = require("@discordjs/voice")
+const { VoiceConectionMain } = require("./VoiceConection.js")
+const Cliente = new Client({ intents: 32767 })
 
-const app = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES] })
+const Voice = VoiceConectionMain
 
-app.once("ready", () => {
-    console.log("Estou pronto")
-})
+Cliente.on("ready", () => console.log("cliente esta logado"))
 
-app.on("interactionCreate", async interaction => {
-    if (!interaction.isCommand()) return;
+Cliente.on("messageCreate", async msg => {
 
-    const { commandName } = interaction
-    switch (commandName) {
-        case "ping":
-            await interaction.reply("pong!")
-            break;
-        case "server":
-            await interaction.reply(`voce esta no servidor: ${interaction.member.guild}
-            e esta logado como: ${interaction.member.user.username}
-            `)
-            break;
-        case "play":
-            await interaction.reply("vou toca uma musica")
-            break;
+    if (msg.content == "!join") {
+        if (msg.member.voice.channel) {
+            Voice.Adapter = msg.guild.voiceAdapterCreator
+            Voice.channelId = msg.member.voice.channel.id
+            Voice.GuildId = msg.guild.id
+            await Voice.MakeConection()
+        }
+        else
+            msg.reply("Voce deve estar em um canal de voz ")
+    }
+
+    if (msg.content == "!dis") {
+        Voice.MakeConection("delete")
+    }
+
+    if (msg.content == "!play") {
+        Voice.MakeConection("play")
     }
 })
 
-function COnectionTochanel(type, channelId, guildId, Voice) {
-    const connection = joinVoiceChannel({
-        channelId: channelId,
-        guildId: guildId,
-        adapterCreator: Voice,
-        selfMute: false,
-    })
-    console.log("sucesso")
-    console.log("sucesso")
+Cliente.on("error", (erro) => console.log(erro))
 
-    if (type === "delete") {
-        connection.disconnect()
-        connection.destroy()
-    }
-}
-
-function handlePlay(e) {
-    getVoiceConnection(e)
-}
-
-app.on("messageCreate", msg => {
-    if (msg.content === "!join") {
-        COnectionTochanel(null, msg.member.voice.channel.id, msg.guild.id, msg.guild.voiceAdapterCreator)
-    }
-    else if (msg.content === "!dis") {
-        COnectionTochanel("delete", msg.member.voice.channel.id, msg.guild.id, msg.guild.voiceAdapterCreator)
-    }
-    else if (msg.content === '!play')
-        handlePlay(msg.member.voice.guild.id)
-})
-
-app.login(token)
+Cliente.login(token)
