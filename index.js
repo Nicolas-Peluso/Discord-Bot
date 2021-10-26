@@ -1,32 +1,48 @@
-const { token } = require("./config.json")
-const { Client, Intents } = require("discord.js")
+const { token, start } = require("./config.json")
+const { Client, Intents, MessageActionRow } = require("discord.js")
 const { VoiceConectionMain } = require("./VoiceConection.js")
-const Cliente = new Client({ intents: 32767 })
+const myIntents = new Intents();
+myIntents.add(
+    Intents.FLAGS.GUILDS,
+    "GUILD_VOICE_STATES",
+    "DIRECT_MESSAGES",
+    "GUILD_MESSAGES")
 
+const Cliente = new Client({ intents: myIntents })
 const Voice = VoiceConectionMain
+exports.cliente = Cliente
 
-Cliente.on("ready", () => console.log("cliente esta logado"))
+Cliente.once("ready", () => console.log("cliente esta logado"))
 
 Cliente.on("messageCreate", async msg => {
-
-    if (msg.content == "!join") {
-        if (msg.member.voice.channel) {
-            Voice.Adapter = msg.guild.voiceAdapterCreator
-            Voice.channelId = msg.member.voice.channel.id
-            Voice.GuildId = msg.guild.id
-            await Voice.MakeConection()
+    const voiceChannel = msg.member.voice.channel
+    if (voiceChannel) {
+        if (msg.content === `${start}join`) {
+            Voice.Adapter = voiceChannel.guild.voiceAdapterCreator
+            Voice.channelId = voiceChannel.id
+            Voice.GuildId = voiceChannel.guild.id
+            Voice.MakeConection()
         }
-        else
-            msg.reply("Voce deve estar em um canal de voz ")
-    }
+        else if (msg.content === `${start}dis`) {
+            Voice.Disconnect()
+        }
 
-    if (msg.content == "!dis") {
-        Voice.MakeConection("delete")
-    }
+        else if (msg.content.startsWith(`${start}play `)) {
+            let OqueTocar = msg.content.replace("!play ", "")
+            Voice.Play(OqueTocar)
+        }
 
-    if (msg.content == "!play") {
-        Voice.MakeConection("play")
+        else if (msg.content === `${start}pause`) {
+            Voice.Pause()
+        }
+        else if (msg.content === `${start}resume`) {
+            Voice.Resume()
+        }
+        else if (msg.content === `${start}stop`) {
+            Voice.Stop()
+        }
     }
+    else if (msg.content.startsWith(start)) msg.reply("voce deve estar em uma conexão de voz")
 })
 
 Cliente.on("error", (erro) => console.log(erro))

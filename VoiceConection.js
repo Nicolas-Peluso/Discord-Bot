@@ -1,9 +1,13 @@
 const {
     joinVoiceChannel,
-    VoiceConnectionStatus,
     createAudioPlayer,
     createAudioResource,
-    AudioPlayerStatus } = require('@discordjs/voice')
+    AudioPlayerStatus,
+    getVoiceConnection,
+    VoiceConnectionStatus
+
+} = require('@discordjs/voice')
+const Ytdl = require("ytdl-core")
 
 class VoiceConectionMain {
     constructor(ChanelId, GuildId, Adapter) {
@@ -12,39 +16,63 @@ class VoiceConectionMain {
         this.Adapter = Adapter
 
         this.player = createAudioPlayer()
-        this.resource = createAudioResource("https://cdn.discordapp.com/attachments/900060587143364641/901418545261461574/risadas.mp3")
+        this.conection1;
     }
-    async MakeConection(Type) {
+    MakeConection() {
         try {
-            VoiceConnectionStatus.Connecting
-            let conection = joinVoiceChannel({
+            joinVoiceChannel({
                 channelId: this.channelId,
                 guildId: this.GuildId,
                 adapterCreator: this.Adapter,
-                selfMute: false,
-
             }
             )
-
-            if (Type === "delete") {
-                conection.disconnect()
-                conection.destroy()
-                VoiceConnectionStatus.Destroyed
-                console.log("conexão encerrada com sucesso")
-            }
-            if (Type === "play") {
-                this.player.play(this.resource)
-                conection.subscribe(this.player)
-
-                this.player.on(AudioPlayerStatus.Idle, () => {
-                    conection.destroy()
-                })
-            }
+            this.conection1 = getVoiceConnection(this.GuildId)
+        } catch (e) {
+            return console.log("client refused")
         }
+    };
 
-        catch (e) {
-            console.log("algum erro", e)
+    Disconnect() {
+        if (!!this.conection1) {
+            this.conection1.disconnect()
+            this.conection1.destroy()
+            console.log("conexão encerrada")
+        } else {
+            console.log("voce deve estar em uma conexão de voz para sair dela")
         }
+    }
+
+    Play(oQueTocar) {
+        if (!!this.conection1) {
+            if (Ytdl.validateURL(oQueTocar)) {
+                let resource = createAudioResource(Ytdl(oQueTocar, { filter: "audioonly" }))
+                this.player.play(resource)
+                this.conection1.subscribe(this.player)
+            } else return console.log("a url nao esta batendo tente novamente")
+        } else return console.log("voce deve estar em um canal de audio para usar essa opção")
+
+
+        this.player.on(AudioPlayerStatus.Idle, () => {
+            this.player.stop()
+        })
+    }
+
+    Pause() {
+        if (!!VoiceConnectionStatus.Ready)
+            this.player.pause()
+        return console.log("voce deve estar ouvindo uma musica para pausa-la")
+    }
+
+    Resume() {
+        if (!!VoiceConnectionStatus.Ready)
+            this.player.unpause()
+        return console.log("voce deve estar ouvindo uma musica para continuar ouvindo")
+    }
+
+    Stop() {
+        if (!!VoiceConnectionStatus.Ready)
+            this.player.stop()
+        return console.log("voce deve estar ouvindo uma musica para parar de ouvila")
     }
 }
 
