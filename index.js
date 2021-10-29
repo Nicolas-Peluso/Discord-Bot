@@ -1,6 +1,6 @@
 const { token, start } = require("./config.json")
-const { Client, Intents, MessageActionRow } = require("discord.js")
-const { VoiceConectionMain } = require("./VoiceConection.js")
+const { Client, Intents } = require("discord.js")
+const { VoiceConectionMain } = require("./voice/VoiceConection.js")
 const myIntents = new Intents();
 myIntents.add(
     Intents.FLAGS.GUILDS,
@@ -10,11 +10,10 @@ myIntents.add(
 
 const Cliente = new Client({ intents: myIntents })
 const Voice = VoiceConectionMain
-exports.cliente = Cliente
 
 Cliente.once("ready", () => console.log("cliente esta logado"))
 
-Cliente.on("messageCreate", async msg => {
+Cliente.on("messageCreate", msg => {
     const voiceChannel = msg.member.voice.channel
     if (voiceChannel) {
         if (msg.content === `${start}join`) {
@@ -26,12 +25,10 @@ Cliente.on("messageCreate", async msg => {
         else if (msg.content === `${start}dis`) {
             Voice.Disconnect()
         }
-
         else if (msg.content.startsWith(`${start}play `)) {
             let OqueTocar = msg.content.replace("!play ", "")
             Voice.Play(OqueTocar)
         }
-
         else if (msg.content === `${start}pause`) {
             Voice.Pause()
         }
